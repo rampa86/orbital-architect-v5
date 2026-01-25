@@ -28,7 +28,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: www/cv.bioszolventa.com/public_html/ruben/
+          server-dir: cv.bioszolventa.com/public_html/ruben/
           protocol: ftps
           exclude: |
             **/.git*
