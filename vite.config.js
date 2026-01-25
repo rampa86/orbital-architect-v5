@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './', // CRITICAL: This ensures assets load correctly on shared hosting (SiteGround)
+  base: '/ruben/', // CRITICAL: This ensures assets load correctly on shared hosting (SiteGround)
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
