@@ -34,3 +34,5 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+          local-dir: ./dist/
+          angerous-clean-slate: true
