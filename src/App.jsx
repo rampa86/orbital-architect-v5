@@ -15,7 +15,7 @@ const COLORS = {
 
 // --- MOCK DATA (Based on biotech_cv schema) ---
 const PROFILE = {
-  name: "Dr. Alex S.",
+  name: "Ruben Calahorrano",
   title: "Environmental Engineer & Data Scientist",
   bio: "Fusing orbital remote sensing with ground-truth environmental engineering. Building planetary observation interfaces for the next generation of eco-stewardship.",
   coords: "51.5074° N, 0.1278° W",
