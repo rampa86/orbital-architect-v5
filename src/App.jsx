@@ -1,332 +1,308 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Globe, Activity, Layers, Terminal, ExternalLink, Cpu, Database, Wind } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { 
+  Sun, 
+  Flame, 
+  MapPin, 
+  Mail, 
+  Linkedin, 
+  Award, 
+  ShieldCheck, 
+  Zap, 
+  Beaker, 
+  Cpu, 
+  Globe,
+  Binary,
+  Layers,
+  Activity
+} from 'lucide-react';
 
-// --- VISUAL CONSTANTS ---
-const COLORS = {
-  bg: '#050505',      // Midnight Obsidian
-  card: '#0a0a0a',    // Slightly lighter for depth
-  border: '#1F2937',  // Carbon Grid
-  textMain: '#F3F4F6',
-  textMuted: '#9CA3AF',
-  accent: '#FF4500',  // Spectral Magma
-  accentGlow: 'rgba(255, 69, 0, 0.4)',
-  sensor: '#374151',  // Sensor Grey
-};
-
-// --- MOCK DATA (Based on biotech_cv schema) ---
-const PROFILE = {
-  name: "Ruben Calahorrano",
-  title: "Environmental Engineer & Data Scientist",
-  bio: "Fusing orbital remote sensing with ground-truth environmental engineering. Building planetary observation interfaces for the next generation of eco-stewardship.",
-  coords: "51.5074° N, 0.1278° W",
-  status: "ORBITAL_SCAN_ACTIVE"
-};
-
-const SKILLS = [
-  { name: "Lidar Processing", level: 95, category: "Remote Sensing" },
-  { name: "React / Three.js", level: 88, category: "Dev" },
-  { name: "Python / GDAL", level: 92, category: "Data" },
-  { name: "NDVI Analysis", level: 85, category: "Agri" },
-];
-
-const EXPERIENCE = [
-  {
-    role: "Senior Geospatial Analyst",
-    company: "TerraScope Labs",
-    period: "2023 - Present",
-    desc: "Leading thermal mapping initiatives using satellite telemetry.",
-    stack: ["Python", "QGIS", "AWS"]
-  },
-  {
-    role: "Full Stack Engineer",
-    company: "EcoGrid Systems",
-    period: "2021 - 2023",
-    desc: "Developed the core frontend for a precision agriculture dashboard.",
-    stack: ["React", "Node.js", "PostGIS"]
-  }
-];
-
-// --- COMPONENTS ---
-
-// 1. LIDAR HERO COMPONENT (Canvas Simulation)
-const LidarHero = () => {
+// --- 2D Generative Visual Engine ---
+const BiosphereCanvas = ({ isNightMode }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     let animationFrameId;
-    let rotation = 0;
+    let time = 0;
 
-    // Set canvas size
     const resize = () => {
-      const parent = canvas.parentElement;
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     };
+
     window.addEventListener('resize', resize);
     resize();
 
-    // Generate Point Cloud (Sphere representation)
-    const points = [];
-    const numPoints = 600;
-    for (let i = 0; i < numPoints; i++) {
-      const theta = Math.acos(2 * Math.random() - 1);
-      const phi = Math.sqrt(numPoints * Math.PI) * phi_golden(i);
-      const r = 120; // Radius
-      points.push({
-        x: r * Math.sin(theta) * Math.cos(phi),
-        y: r * Math.sin(theta) * Math.sin(phi),
-        z: r * Math.cos(theta),
-        baseColor: COLORS.sensor,
-        activeColor: COLORS.accent,
-        heat: 0
-      });
-    }
-
-    function phi_golden(k) {
-      return Math.PI * (3 - Math.sqrt(5)) * k;
-    }
-
-    // Mouse Interaction
-    let mouseX = 0;
-    let mouseY = 0;
-    
-    const handleMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left - canvas.width / 2;
-      mouseY = e.clientY - rect.top - canvas.height / 2;
-    };
-    canvas.addEventListener('mousemove', handleMouseMove);
-
-    // Animation Loop
-    const render = () => {
-      ctx.fillStyle = COLORS.card;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const draw = () => {
+      time += 0.005;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
 
-      rotation += 0.002;
+      if (!isNightMode) {
+        // DAY MODE: Elevation Forest Satellite Profiling (Topographic Lines)
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 0.5;
+        const spacing = 40;
+        const rows = Math.ceil(canvas.height / spacing) + 4;
+        const cols = Math.ceil(canvas.width / spacing) + 4;
 
-      points.forEach(p => {
-        // Rotate around Y
-        let x = p.x * Math.cos(rotation) - p.z * Math.sin(rotation);
-        let z = p.x * Math.sin(rotation) + p.z * Math.cos(rotation);
-        let y = p.y;
-
-        // 3D Projection
-        const scale = 300 / (300 + z);
-        const x2d = x * scale + cx;
-        const y2d = y * scale + cy;
-        const size = Math.max(1, 2 * scale);
-
-        // Heat calculation based on mouse proximity (2D plane)
-        const dx = x2d - (mouseX + cx);
-        const dy = y2d - (mouseY + cy);
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        // Decay heat slowly, add heat quickly
-        if (dist < 50) {
-          p.heat = Math.min(p.heat + 0.1, 1);
-        } else {
-          p.heat = Math.max(p.heat - 0.02, 0);
+        for (let i = 0; i < rows; i++) {
+          ctx.beginPath();
+          for (let j = 0; j < cols; j++) {
+            const x = j * spacing;
+            const y = i * spacing;
+            
+            // Generate pseudo-elevation using sine waves
+            const elevation = Math.sin(x * 0.002 + time) * Math.cos(y * 0.002 + time) * 30;
+            const distToCenter = Math.sqrt((x - centerX)**2 + (y - centerY)**2);
+            const focus = Math.max(0, 1 - distToCenter / (canvas.width * 0.6));
+            
+            if (j === 0) ctx.moveTo(x, y + elevation * focus);
+            else ctx.lineTo(x, y + elevation * focus);
+          }
+          ctx.globalAlpha = 0.15;
+          ctx.stroke();
         }
+      } else {
+        // NIGHT MODE: Thermal Globe Scale (Radial Infrared Energy)
+        const rings = 8;
+        for (let i = 0; i < rings; i++) {
+          const radius = (i * 100 + (time * 50) % 100);
+          const alpha = Math.max(0, 1 - radius / 600);
+          
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+          ctx.strokeStyle = '#FF4500';
+          ctx.lineWidth = 2;
+          ctx.globalAlpha = alpha * 0.2;
+          ctx.stroke();
 
-        // Draw
-        ctx.beginPath();
-        ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
-        
-        // Color interpolation
-        if (p.heat > 0.1) {
-           ctx.fillStyle = `rgba(255, 69, 0, ${0.5 + p.heat * 0.5})`; // Spectral Magma
-           // Add a slight glow for hot points
-           ctx.shadowBlur = 5;
-           ctx.shadowColor = COLORS.accent;
-        } else {
-           ctx.fillStyle = `rgba(55, 65, 81, ${0.4 + (z/200)})`; // Depth-based grey
-           ctx.shadowBlur = 0;
+          // Energy "Particles" on the rings
+          const particleCount = 12;
+          for (let p = 0; p < particleCount; p++) {
+            const angle = (p / particleCount) * Math.PI * 2 + (time * (i % 2 === 0 ? 1 : -1));
+            const px = centerX + Math.cos(angle) * radius;
+            const py = centerY + Math.sin(angle) * radius;
+            ctx.beginPath();
+            ctx.arc(px, py, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#FF8800';
+            ctx.globalAlpha = alpha;
+            ctx.fill();
+          }
         }
         
-        ctx.fill();
-        ctx.shadowBlur = 0; // Reset
-      });
+        // Grid overlay for "Lidar" feel
+        ctx.strokeStyle = '#FF4500';
+        ctx.lineWidth = 0.2;
+        ctx.globalAlpha = 0.05;
+        for(let x = 0; x < canvas.width; x += 50) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+        }
+        for(let y = 0; y < canvas.height; y += 50) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+        }
+      }
 
-      animationFrameId = requestAnimationFrame(render);
+      animationFrameId = requestAnimationFrame(draw);
     };
-    render();
 
+    draw();
     return () => {
-      window.removeEventListener('resize', resize);
-      canvas.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [isNightMode]);
 
-  return <canvas ref={canvasRef} className="w-full h-full cursor-crosshair rounded-2xl" />;
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" />;
 };
 
-// 2. DATA CARD
-const BentoCard = ({ title, children, className = "", icon: Icon }) => (
-  <div className={`relative bg-[#0a0a0a] border border-gray-800 rounded-2xl p-6 overflow-hidden hover:border-orange-900/50 transition-colors duration-500 group ${className}`}>
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-gray-400 font-mono text-xs uppercase tracking-widest flex items-center gap-2">
-        {Icon && <Icon size={14} className="text-orange-500" />}
-        {title}
-      </h3>
-      <div className="w-1 h-1 bg-gray-800 rounded-full group-hover:bg-orange-500 transition-colors duration-300"></div>
-    </div>
-    <div className="relative z-10">
-      {children}
-    </div>
-    {/* Grid Background Effect */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(31,41,55,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(31,41,55,0.05)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
-  </div>
-);
-
-// 3. SKILL BAR
-const SkillBar = ({ name, level }) => (
-  <div className="mb-3">
-    <div className="flex justify-between text-xs font-mono mb-1">
-      <span className="text-gray-300">{name}</span>
-      <span className="text-orange-500">{level}%</span>
-    </div>
-    <div className="h-1 w-full bg-gray-900 rounded-full overflow-hidden">
-      <div 
-        className="h-full bg-gradient-to-r from-orange-900 to-orange-500" 
-        style={{ width: `${level}%` }}
-      ></div>
-    </div>
-  </div>
-);
-
-// --- MAIN APP COMPONENT ---
 export default function App() {
+  const [isNightMode, setIsNightMode] = useState(false);
+
+  const theme = {
+    bg: isNightMode ? 'bg-[#050505]' : 'bg-[#F9FAFB]',
+    card: isNightMode ? 'bg-black/60 border-[#1F2937] text-[#9CA3AF]' : 'bg-white/60 border-[#E5E7EB] text-[#022C22]',
+    accent: isNightMode ? 'text-[#FF4500]' : 'text-[#10B981]',
+    accentBg: isNightMode ? 'bg-[#FF4500]' : 'bg-[#10B981]',
+    title: isNightMode ? 'text-white' : 'text-[#022C22]',
+    border: isNightMode ? 'border-[#FF4500]/20' : 'border-[#10B981]/20',
+  };
+
   return (
-    <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-orange-500/30">
-      
-      {/* HEADER / HUD */}
-      <header className="fixed top-0 w-full z-50 border-b border-gray-800/50 bg-[#050505]/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div className={`min-h-screen transition-colors duration-700 ${theme.bg} selection:bg-emerald-500/30 overflow-x-hidden`}>
+      <BiosphereCanvas isNightMode={isNightMode} />
+
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 p-6 backdrop-blur-sm border-b border-white/5">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-            <span className="font-mono text-sm tracking-widest text-gray-400">ORBITAL_ARCHITECT_V5</span>
+            <div className={`w-8 h-8 ${theme.accentBg} rounded flex items-center justify-center font-black text-white`}>R</div>
+            <span className={`text-xs font-bold tracking-[0.3em] uppercase ${theme.title}`}>Biosphere Interface v6</span>
           </div>
-          <div className="font-mono text-xs text-orange-500/80 flex items-center gap-4">
-             <span className="hidden md:inline">SYS.STATUS: NOMINAL</span>
-             <span className="border px-2 py-0.5 border-orange-900 rounded bg-orange-950/20">LIVE</span>
+          
+          <button 
+            onClick={() => setIsNightMode(!isNightMode)}
+            className={`px-4 py-2 rounded-full border flex items-center gap-3 transition-all hover:scale-105 active:scale-95 ${theme.card}`}
+          >
+            {isNightMode ? <Flame size={14} className="text-[#FF4500]" /> : <Sun size={14} className="text-[#10B981]" />}
+            <span className="text-[10px] font-black tracking-widest">{isNightMode ? 'THERMAL ON' : 'BIOLOGY ON'}</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <header className="relative pt-40 pb-20 px-6 max-w-7xl mx-auto">
+        <div className="max-w-3xl">
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${theme.border} mb-6`}>
+             <Activity size={12} className={theme.accent} />
+             <span className={`text-[10px] font-bold tracking-widest ${theme.accent}`}>SYSTEMS OPERATIONAL</span>
           </div>
+          <h1 className={`text-6xl md:text-8xl font-black tracking-tighter mb-4 leading-[0.85] ${theme.title}`}>
+            RAMIRO <br /> 
+            <span className={theme.accent}>RUBÉN</span>
+          </h1>
+          <p className={`text-lg md:text-xl font-medium max-w-xl ${isNightMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            MSc Agricultural Environmental Management Engineer. 
+            Synthesizing Biotechnology & Sustainable Systems through 
+            <span className={theme.accent}> {isNightMode ? 'Thermal Energy Mapping' : 'Satellite Bio-Profiling'}</span>.
+          </p>
         </div>
       </header>
 
-      {/* MAIN CONTENT GRID */}
-      <main className="pt-24 pb-20 px-4 max-w-7xl mx-auto">
+      {/* Bento Grid */}
+      <main className="max-w-7xl mx-auto px-6 pb-20 grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]">
         
-        {/* HERO GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 h-auto md:h-[500px]">
-          
-          {/* TILE 1: PROFILE (Left Column) */}
-          <BentoCard title="Operator Identity" icon={Terminal} className="md:col-span-4 flex flex-col justify-between">
+        {/* CEO Executive Card */}
+        <div className={`md:col-span-3 md:row-span-2 p-10 rounded-[2rem] border backdrop-blur-xl transition-all hover:border-current ${theme.card} group`}>
+          <div className="h-full flex flex-col justify-between">
             <div>
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-black border border-gray-700 mb-6 flex items-center justify-center">
-                 <span className="font-mono text-xl text-orange-500">AS</span>
+              <div className="flex justify-between items-start mb-8">
+                <span className={`text-xs font-black tracking-widest uppercase py-1 px-3 rounded-md ${theme.accentBg} text-white`}>Active Leadership</span>
+                <Cpu size={32} className={`${theme.accent} opacity-40 group-hover:opacity-100 transition-opacity`} />
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">{PROFILE.name}</h1>
-              <p className="text-orange-500 font-mono text-xs mb-4">{PROFILE.title}</p>
-              <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                {PROFILE.bio}
+              <h2 className={`text-4xl md:text-5xl font-black mb-4 ${theme.title}`}>CEO @ BIOSZOLVENTA</h2>
+              <p className="text-lg leading-relaxed max-w-2xl">
+                Strategic leadership in Biotechnology and Environmental Engineering. 
+                Implementing sustainable systems across Hungary and Ecuador, 
+                focusing on resource allocation and long-term ecological scalability.
               </p>
             </div>
-            <div className="border-t border-gray-800 pt-4 mt-auto">
-              <div className="flex items-center gap-2 text-xs font-mono text-gray-500">
-                <MapPin size={12} />
-                {PROFILE.coords}
-              </div>
-            </div>
-          </BentoCard>
-
-          {/* TILE 2: LIDAR VISUALIZER (Main Hero) */}
-          <BentoCard title="Spectral Scanner // Lidar View" icon={Globe} className="md:col-span-8 relative p-0 overflow-hidden">
-            <div className="absolute top-4 left-6 z-20 pointer-events-none">
-              <div className="text-[10px] font-mono text-orange-500 bg-black/50 px-2 py-1 rounded border border-orange-900/30">
-                INTERACTION: HOVER TO SCAN
-              </div>
-            </div>
-            {/* The Canvas Component */}
-            <div className="w-full h-full min-h-[300px]">
-              <LidarHero />
-            </div>
-             {/* Overlay UI elements for the 'Scanner' look */}
-            <div className="absolute bottom-6 right-6 z-20 font-mono text-[10px] text-gray-600 text-right pointer-events-none">
-              <p>DATA_STREAM: CONNECTED</p>
-              <p>RENDER: POINTS_CLOUD</p>
-              <p>FPS: 60</p>
-            </div>
-          </BentoCard>
-        </div>
-
-        {/* SECONDARY GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-auto">
-          
-          {/* TILE 3: TECH STACK / SKILLS */}
-          <BentoCard title="System Capabilities" icon={Cpu} className="md:col-span-4">
-             <div className="space-y-4 mt-2">
-                {SKILLS.map((skill, i) => (
-                  <SkillBar key={i} {...skill} />
-                ))}
-             </div>
-             <div className="mt-6 flex flex-wrap gap-2">
-                {['MySQL', 'PHP Bridge', 'GLSL', 'Vite'].map(tag => (
-                  <span key={tag} className="text-[10px] font-mono border border-gray-800 px-2 py-1 rounded text-gray-500">
-                    {tag}
-                  </span>
-                ))}
-             </div>
-          </BentoCard>
-
-          {/* TILE 4: EXPERIENCE TIMELINE */}
-          <BentoCard title="Mission Log" icon={Activity} className="md:col-span-5">
-            <div className="space-y-6 mt-2">
-              {EXPERIENCE.map((job, i) => (
-                <div key={i} className="relative pl-4 border-l border-gray-800 hover:border-orange-900 transition-colors">
-                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-gray-900 border border-gray-700"></div>
-                  <h4 className="text-sm font-bold text-gray-200">{job.role}</h4>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-orange-400">{job.company}</span>
-                    <span className="text-[10px] font-mono text-gray-600">{job.period}</span>
-                  </div>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    {job.desc}
-                  </p>
+            <div className="flex flex-wrap gap-4 mt-8">
+              {['Executive Leadership', 'Strategic Planning', 'Agro-Food Systems', 'Global Logistics'].map(tag => (
+                <div key={tag} className={`text-[10px] font-bold tracking-widest uppercase border p-2 rounded-lg ${theme.border}`}>
+                  {tag}
                 </div>
               ))}
             </div>
-          </BentoCard>
-
-          {/* TILE 5: STATS / EXTRA */}
-          <BentoCard title="Network" icon={Database} className="md:col-span-3 flex flex-col justify-center">
-             <div className="grid grid-cols-1 gap-3">
-                <button className="flex items-center justify-between p-3 rounded bg-gray-900/50 hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group">
-                   <span className="text-xs font-mono text-gray-400">GITHUB_REPO</span>
-                   <ExternalLink size={14} className="text-gray-600 group-hover:text-white" />
-                </button>
-                <button className="flex items-center justify-between p-3 rounded bg-gray-900/50 hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group">
-                   <span className="text-xs font-mono text-gray-400">LINKEDIN_SIGNAL</span>
-                   <ExternalLink size={14} className="text-gray-600 group-hover:text-white" />
-                </button>
-                <button className="flex items-center justify-between p-3 rounded bg-gray-900/50 hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group">
-                   <span className="text-xs font-mono text-gray-400">ENCRYPTED_MAIL</span>
-                   <ExternalLink size={14} className="text-gray-600 group-hover:text-white" />
-                </button>
-             </div>
-             <div className="mt-auto pt-6 text-center">
-                <p className="text-[10px] text-gray-700 font-mono">
-                  SECURE CONNECTION ESTABLISHED
-                </p>
-             </div>
-          </BentoCard>
+          </div>
         </div>
+
+        {/* Credentials / ISO Card */}
+        <div className={`p-8 rounded-[2rem] border backdrop-blur-xl ${theme.card}`}>
+          <ShieldCheck className={`mb-4 ${theme.accent}`} />
+          <h3 className={`text-sm font-black tracking-widest uppercase mb-4 ${theme.title}`}>Compliance</h3>
+          <ul className="space-y-2 text-xs font-bold">
+            <li className="flex justify-between"><span>ISO 17025</span> <span className={theme.accent}>LABS</span></li>
+            <li className="flex justify-between"><span>ISO 17024</span> <span className={theme.accent}>PERSONNEL</span></li>
+            <li className="flex justify-between opacity-50"><span>ISO 9001</span> <span>SGC</span></li>
+            <li className="flex justify-between opacity-50"><span>ISO 14001</span> <span>ENV</span></li>
+          </ul>
+        </div>
+
+        {/* Education Highlight */}
+        <div className={`p-8 rounded-[2rem] border backdrop-blur-xl ${theme.card}`}>
+          <Award className={`mb-4 ${theme.accent}`} />
+          <h3 className={`text-sm font-black tracking-widest uppercase mb-4 ${theme.title}`}>Academic</h3>
+          <div className="space-y-4">
+            <div>
+              <p className={`text-[10px] font-black ${theme.accent}`}>MSC • DEBRECEN</p>
+              <p className="text-xs font-bold leading-tight">Agri-Environmental Eng.</p>
+            </div>
+            <div>
+              <p className={`text-[10px] font-black ${theme.accent}`}>BSC • ESPE</p>
+              <p className="text-xs font-bold leading-tight">Biotechnology Engineer</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Digital Stack */}
+        <div className={`md:col-span-2 p-8 rounded-[2rem] border backdrop-blur-xl flex flex-col justify-between ${theme.card}`}>
+          <div className="flex items-center gap-4 mb-6">
+            <Binary className={theme.accent} size={20} />
+            <h3 className={`text-xs font-black tracking-widest uppercase ${theme.title}`}>Digital Architecture</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <span className="text-[10px] uppercase tracking-tighter block mb-2 opacity-50">Core Logic</span>
+              <p className="text-sm font-bold">Python, R-Studio, SPSS, HYSYS</p>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase tracking-tighter block mb-2 opacity-50">Interfaces</span>
+              <p className="text-sm font-bold">React, Tailwind, Node.js, GIS</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Global Impact / Locations */}
+        <div className={`md:col-span-1 p-8 rounded-[2rem] border backdrop-blur-xl ${theme.card}`}>
+          <Globe className={`mb-4 ${theme.accent}`} />
+          <h3 className={`text-xs font-black tracking-widest uppercase mb-2 ${theme.title}`}>Nodes</h3>
+          <p className="text-xs font-bold opacity-70 mb-4">Global operational presence across three key regions.</p>
+          <div className="flex flex-col gap-2">
+            {['Ecuador', 'Hungary', 'United Kingdom'].map(loc => (
+              <div key={loc} className="flex items-center gap-2">
+                <div className={`w-1 h-1 rounded-full ${theme.accentBg}`} />
+                <span className="text-[10px] font-black">{loc.toUpperCase()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Technical Mastery / Counter */}
+        <div className={`md:col-span-1 p-8 rounded-[2rem] border backdrop-blur-xl flex flex-col items-center justify-center text-center ${theme.card}`}>
+          <span className={`text-4xl font-black ${theme.accent}`}>6000+</span>
+          <span className="text-[10px] font-black tracking-[0.2em] uppercase mt-2">Laboratory Analyses</span>
+          <div className={`w-full h-1 mt-4 rounded-full bg-current opacity-10`} />
+          <span className="text-[9px] font-bold opacity-50 mt-2 italic">100% Excellence Rating (EPN)</span>
+        </div>
+
+        {/* Creative Core */}
+        <div className={`md:col-span-2 p-8 rounded-[2rem] border backdrop-blur-xl flex justify-between ${theme.card}`}>
+           <div className="max-w-[60%]">
+              <Layers className={`mb-4 ${theme.accent}`} />
+              <h3 className={`text-xs font-black tracking-widest uppercase mb-2 ${theme.title}`}>The Human Layer</h3>
+              <p className="text-xs leading-relaxed opacity-70">Synthesizing science with Oil Painting, Sculpture, and High-Altitude Mountaineering.</p>
+           </div>
+           <div className="flex flex-col justify-end">
+              <span className={`text-[10px] font-black border ${theme.border} px-2 py-1 rounded`}>ART + BIO</span>
+           </div>
+        </div>
+
+        {/* Contact Strip */}
+        <div className={`md:col-span-2 p-8 rounded-[2rem] border backdrop-blur-xl flex items-center justify-around ${theme.card}`}>
+           <a href="mailto:ramiro.calahorrano@gmail.com" className="hover:scale-110 transition-transform"><Mail className={theme.accent} /></a>
+           <a href="#" className="hover:scale-110 transition-transform"><Linkedin className={theme.accent} /></a>
+           <a href="#" className="hover:scale-110 transition-transform"><MapPin className={theme.accent} /></a>
+        </div>
+
       </main>
+
+      {/* Footer System Status */}
+      <footer className={`p-10 border-t ${isNightMode ? 'border-white/5' : 'border-black/5'} opacity-40`}>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[9px] font-black tracking-[0.4em] uppercase">R. CALAHORRANO PACCHA // BIOSPHERE IDENTITY</p>
+          <div className="flex items-center gap-6">
+             <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full animate-pulse ${theme.accentBg}`} />
+                <span className="text-[9px] font-bold">CORE_OPERATIONAL</span>
+             </div>
+             <span className="text-[9px] font-bold italic underline">v6.0_STABLE_RELEASE</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
