@@ -28,6 +28,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          # Keeping your path exactly as you had it
           server-dir: cv.bioszolventa.com/public_html/ruben/
           protocol: ftps
           exclude: |
@@ -35,4 +36,17 @@ jobs:
             **/.git*/**
             **/node_modules/**
           local-dir: ./dist/
-          angerous-clean-slate: true
+          dangerous-clean-slate: true
+
+      - name: 🧹 Flush SiteGround Cache
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # 👇 THIS IS THE NEW PART FOR THE PASSWORD
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: 18765
+          script: site-tools-client domain:flush-cache cv.bioszolventa.com
+
+
