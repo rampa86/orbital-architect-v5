@@ -38,15 +38,15 @@ jobs:
           local-dir: ./dist/
           dangerous-clean-slate: true
 
-      - name: 🧹 Flush SiteGround Cache
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #- name: 🧹 Flush SiteGround Cache
+        #uses: appleboy/ssh-action@master
+        #with:
+          #host: ${{ secrets.FTP_SERVER }}
+          #username: ${{ secrets.SSH_USERNAME }}
+          #key: ${{ secrets.SSH_PRIVATE_KEY }}
           # 👇 THIS IS THE NEW PART FOR THE PASSWORD
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          port: 18765
-          script: site-tools-client domain:flush-cache cv.bioszolventa.com
+          #passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          #port: 18765
+          #script: site-tools-client domain:flush-cache cv.bioszolventa.com
 
 
