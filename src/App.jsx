@@ -23,8 +23,8 @@ const App = () => {
     contact: {
       email: "ramiro.calahorrano@gmail.com",
       secondaryEmails: "rampa86@gmail.com / pichiocp_rr@hotmail.com",
-      phone: "+593 98 407 1571",
-      location: "Sargento Puyarde and General Pintag OE7-11, Quito",
+      phone: "+36 20 278 1374",
+      location: "Tölgyfa út 3, Bocskaikert, HU 4241",
       id: "100230810-2"
     },
     summary: "Dedicated Biotechnology Engineer and Environmental Technology specialist with extensive experience in laboratory management, academic leadership, and sustainable consultancy. Proven expertise in ISO 17025 compliance, water/soil quality control, and innovative agricultural solutions.",
