@@ -3,20 +3,40 @@ import {
   Sun, Moon, Printer, Info, Briefcase, GraduationCap, 
   MapPin, Mail, Phone, Award, Layers, 
   Cpu, Leaf, Zap, Globe, FileText, Download, 
-  CheckCircle, Users, Beaker, BookOpen, Microscope
+  CheckCircle, Users, Beaker, BookOpen, Microscope,
+  Loader2 // Imported Loader icon
 } from 'lucide-react';
 
 const App = () => {
+  // FIX 1: Added Loading State
+  // This prevents the "White Screen of Death" by showing an animation while assets load
+  const [isLoading, setIsLoading] = useState(true);
   const [isNightMode, setIsNightMode] = useState(false);
-  const [viewMode, setViewMode] = useState('interactive'); // 'interactive' or 'reading'
+  const [viewMode, setViewMode] = useState('interactive'); 
   const [activeSection, setActiveSection] = useState('overview');
 
+  // FIX 2: Optimized Font Loading & Initialization
   useEffect(() => {
+    // 1. Theme Detection
     const hour = new Date().getHours();
     setIsNightMode(hour < 6 || hour > 18);
+
+    // 2. Preload Fonts Programmatically (Better than @import in body)
+    // We inject the link tag into the head to start downloading ASAP
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
+    // 3. Remove Loader after a brief delay to ensure fonts are ready
+    // This gives a smoother experience than the jarring jump
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500); // 1.5s delay to allow layout to settle
+
+    return () => clearTimeout(timer);
   }, []);
 
-  // Data parsed from the provided CSV file
   const profileData = {
     name: "Ramiro Rubén Calahorrano Paccha",
     title: "Biotechnology Engineer | MS. Environmental Technology",
@@ -86,7 +106,6 @@ const App = () => {
         focus: "Specialization in Biotechnology applications."
       }
     ],
-    // Categorized training based on the CSV "Sub-Category" column
     training: {
       standards: [
         { title: "Integrated Security Systems: ISO 17025; ISO 9001; ISO 14001; ISO 45001", org: "ESPE", year: "2016 (4h)" },
@@ -113,7 +132,6 @@ const App = () => {
         { title: "Social and Sustainable Entrepreneurship", org: "USFQ", year: "2012 (3h)" }
       ]
     },
-    // Skills inferred from the CSV details
     inferredSkills: [
       "ISO 17025 / 9001 / 14001", "Environmental Impact Assessment", 
       "Water & Soil Analysis", "Chemometrics", "Academic Management", 
@@ -124,23 +142,23 @@ const App = () => {
   const theme = {
     bg: isNightMode ? "bg-slate-950" : "bg-emerald-50/50",
     text: isNightMode ? "text-slate-100" : "text-emerald-950",
-    secondaryText: isNightMode ? "text-slate-300" : "text-emerald-800/80", // Increased contrast
+    secondaryText: isNightMode ? "text-slate-300" : "text-emerald-800/80",
     accent: isNightMode ? "text-teal-400" : "text-emerald-700",
     accentBg: isNightMode ? "bg-teal-500/20" : "bg-emerald-600/10",
-    border: isNightMode ? "border-slate-700" : "border-emerald-200", // Darker border for night mode
+    border: isNightMode ? "border-slate-700" : "border-emerald-200",
     card: isNightMode 
-      ? "bg-slate-900 border-slate-700 shadow-2xl shadow-black/40" // Solid opacity for better contrast
+      ? "bg-slate-900 border-slate-700 shadow-2xl shadow-black/40" 
       : "bg-white/90 border-emerald-100 shadow-lg shadow-emerald-100/50",
     navActive: isNightMode ? "bg-teal-600 text-white shadow-[0_0_20px_rgba(20,184,166,0.3)]" : "bg-emerald-800 text-white shadow-lg shadow-emerald-900/20",
     navInactive: isNightMode 
-      ? "text-slate-300 bg-slate-800 hover:bg-slate-700" // Explicit bg for inactive state
+      ? "text-slate-300 bg-slate-800 hover:bg-slate-700"
       : "text-emerald-900 bg-white hover:bg-emerald-50 border border-emerald-100",
-    // New specific tag styles for high contrast
     tagStyle: isNightMode 
       ? "bg-slate-800 border-slate-600 text-teal-100" 
       : "bg-white border-emerald-200 text-emerald-900 shadow-sm"
   };
 
+  // Section Navigation Component
   const SectionNav = () => (
     <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-12 no-print">
       {['overview', 'experience', 'education', 'training'].map((sec) => (
@@ -157,8 +175,30 @@ const App = () => {
     </div>
   );
 
+  // FIX 3: The Loading Screen UI
+  // This renders while the app is preparing, preventing the blank page
+  if (isLoading) {
+    return (
+      <div className={`h-screen w-full flex flex-col items-center justify-center transition-colors duration-700 ${isNightMode ? "bg-slate-950 text-teal-400" : "bg-emerald-50 text-emerald-700"}`}>
+        <div className="relative">
+          {/* Pulsing rings */}
+          <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${isNightMode ? "bg-teal-500" : "bg-emerald-500"}`}></div>
+          <div className={`absolute inset-[-12px] rounded-full animate-pulse opacity-10 ${isNightMode ? "bg-teal-400" : "bg-emerald-400"}`}></div>
+          {/* Center Icon */}
+          <Leaf size={48} className="animate-bounce" />
+        </div>
+        <div className="mt-8 text-xs font-bold tracking-[0.3em] uppercase opacity-70 animate-pulse">
+          Bioszolventa
+        </div>
+        <div className="mt-2 text-[10px] tracking-widest opacity-50">
+          Loading Portfolio...
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen transition-colors duration-700 font-sans selection:bg-teal-500/30 ${theme.bg} ${theme.text}`}>
+    <div className={`min-h-screen transition-colors duration-700 font-sans selection:bg-teal-500/30 ${theme.bg} ${theme.text} animate-in fade-in duration-700`}>
       
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -444,7 +484,6 @@ const App = () => {
 
       {/* Global Styles */}
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
         
         /* Custom Scrollbar */
@@ -468,3 +507,4 @@ const App = () => {
 };
 
 export default App;
+
