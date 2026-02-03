@@ -4,38 +4,183 @@ import {
   MapPin, Mail, Phone, Award, Layers, 
   Cpu, Leaf, Zap, Globe, FileText, Download, 
   CheckCircle, Users, Beaker, BookOpen, Microscope,
-  Loader2 // Imported Loader icon
+  Loader2, Shield, Cookie, X // Added Shield, Cookie, X
 } from 'lucide-react';
 
+// --- GDPR Components ---
+
+const PrivacyPolicyModal = ({ isOpen, onClose, isNightMode }) => {
+  if (!isOpen) return null;
+
+  const modalTheme = isNightMode 
+    ? "bg-slate-900 text-slate-100 border-slate-700" 
+    : "bg-white text-emerald-950 border-emerald-100";
+  
+  const headerBg = isNightMode ? "bg-slate-950/50" : "bg-emerald-50/50";
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 no-print">
+      <div className={`rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border ${modalTheme}`}>
+        {/* Header */}
+        <div className={`p-6 border-b border-current border-opacity-10 flex justify-between items-center ${headerBg}`}>
+          <div className="flex items-center gap-2">
+            <Shield className={`w-5 h-5 ${isNightMode ? "text-teal-400" : "text-emerald-600"}`} />
+            <h2 className="text-xl font-bold">Privacy Policy & Data Usage</h2>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-black/5 rounded-full transition-colors opacity-70 hover:opacity-100"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-8 overflow-y-auto space-y-6 leading-relaxed opacity-90">
+          <section>
+            <h3 className="text-lg font-bold mb-2">1. Overview</h3>
+            <p>This portfolio website is a static showcase of professional work. We respect your privacy and process minimal data necessary for functionality.</p>
+          </section>
+          
+          <section>
+            <h3 className="text-lg font-bold mb-2">2. Cookies</h3>
+            <p>We use local storage solely to remember your preferences (such as Dark/Light mode and this privacy consent). No third-party tracking cookies are used for advertising purposes.</p>
+          </section>
+
+          <section>
+            <h3 className="text-lg font-bold mb-2">3. Contact Information</h3>
+            <p>Any personal information you send via the email links provided is used strictly for professional communication.</p>
+          </section>
+        </div>
+
+        {/* Footer */}
+        <div className={`p-4 border-t border-current border-opacity-10 ${headerBg} flex justify-end`}>
+          <button 
+            onClick={onClose}
+            className={`px-6 py-2 font-bold rounded-xl transition-colors ${
+              isNightMode 
+                ? "bg-teal-600 hover:bg-teal-500 text-white" 
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CookieBanner = ({ onAccept, onDecline, onOpenPolicy, isNightMode }) => {
+  const bannerTheme = isNightMode 
+    ? "bg-slate-900 border-slate-700 text-slate-200" 
+    : "bg-white border-emerald-100 text-emerald-900";
+
+  return (
+    <div className={`fixed bottom-0 left-0 right-0 z-[90] p-4 md:p-6 border-t shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-in slide-in-from-bottom duration-500 no-print ${bannerTheme}`}>
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Cookie className={`w-5 h-5 ${isNightMode ? "text-amber-400" : "text-amber-500"}`} />
+            <h3 className="font-bold text-lg">Cookie Preferences</h3>
+          </div>
+          <p className="text-sm opacity-80 max-w-2xl leading-relaxed">
+            I use essential cookies to ensure you get the best experience on my portfolio (like remembering your theme preference). 
+            <button 
+              onClick={onOpenPolicy}
+              className={`ml-1 font-bold underline decoration-2 underline-offset-2 ${isNightMode ? "decoration-teal-500 hover:text-teal-400" : "decoration-emerald-500 hover:text-emerald-700"}`}
+            >
+              View Privacy Policy
+            </button>.
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <button 
+            onClick={onDecline}
+            className={`flex-1 md:flex-none px-6 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors border ${
+              isNightMode 
+                ? "border-slate-700 hover:bg-slate-800" 
+                : "border-emerald-200 hover:bg-emerald-50"
+            }`}
+          >
+            Decline
+          </button>
+          <button 
+            onClick={onAccept}
+            className={`flex-1 md:flex-none px-8 py-3 text-xs font-bold uppercase tracking-widest text-white rounded-xl shadow-lg transition-all hover:scale-105 ${
+              isNightMode 
+                ? "bg-teal-600 hover:bg-teal-500 shadow-teal-900/30" 
+                : "bg-emerald-800 hover:bg-emerald-700 shadow-emerald-900/20"
+            }`}
+          >
+            Accept All
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main App ---
+
 const App = () => {
-  // FIX 1: Added Loading State
-  // This prevents the "White Screen of Death" by showing an animation while assets load
   const [isLoading, setIsLoading] = useState(true);
   const [isNightMode, setIsNightMode] = useState(false);
   const [viewMode, setViewMode] = useState('interactive'); 
   const [activeSection, setActiveSection] = useState('overview');
 
-  // FIX 2: Optimized Font Loading & Initialization
+  // GDPR State
+  const [showBanner, setShowBanner] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [consentStatus, setConsentStatus] = useState('unknown');
+
   useEffect(() => {
     // 1. Theme Detection
     const hour = new Date().getHours();
     setIsNightMode(hour < 6 || hour > 18);
 
-    // 2. Preload Fonts Programmatically (Better than @import in body)
-    // We inject the link tag into the head to start downloading ASAP
+    // 2. Preload Fonts
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
-    // 3. Remove Loader after a brief delay to ensure fonts are ready
-    // This gives a smoother experience than the jarring jump
+    // 3. GDPR Check
+    const savedConsent = localStorage.getItem('portfolio_cookie_consent');
+    if (savedConsent) {
+      setConsentStatus(savedConsent);
+    } else {
+      setTimeout(() => setShowBanner(true), 2000); // Show banner shortly after loading finishes
+    }
+
+    // 4. Loader removal
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500); // 1.5s delay to allow layout to settle
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
+
+  // GDPR Handlers
+  const handleAccept = () => {
+    localStorage.setItem('portfolio_cookie_consent', 'accepted');
+    setConsentStatus('accepted');
+    setShowBanner(false);
+  };
+
+  const handleDecline = () => {
+    localStorage.setItem('portfolio_cookie_consent', 'declined');
+    setConsentStatus('declined');
+    setShowBanner(false);
+  };
+
+  const resetConsent = () => {
+    localStorage.removeItem('portfolio_cookie_consent');
+    setConsentStatus('unknown');
+    setShowBanner(true);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
 
   const profileData = {
     name: "Ramiro Rubén Calahorrano Paccha",
@@ -158,7 +303,6 @@ const App = () => {
       : "bg-white border-emerald-200 text-emerald-900 shadow-sm"
   };
 
-  // Section Navigation Component
   const SectionNav = () => (
     <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-12 no-print">
       {['overview', 'experience', 'education', 'training'].map((sec) => (
@@ -175,16 +319,12 @@ const App = () => {
     </div>
   );
 
-  // FIX 3: The Loading Screen UI
-  // This renders while the app is preparing, preventing the blank page
   if (isLoading) {
     return (
       <div className={`h-screen w-full flex flex-col items-center justify-center transition-colors duration-700 ${isNightMode ? "bg-slate-950 text-teal-400" : "bg-emerald-50 text-emerald-700"}`}>
         <div className="relative">
-          {/* Pulsing rings */}
           <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${isNightMode ? "bg-teal-500" : "bg-emerald-500"}`}></div>
           <div className={`absolute inset-[-12px] rounded-full animate-pulse opacity-10 ${isNightMode ? "bg-teal-400" : "bg-emerald-400"}`}></div>
-          {/* Center Icon */}
           <Leaf size={48} className="animate-bounce" />
         </div>
         <div className="mt-8 text-xs font-bold tracking-[0.3em] uppercase opacity-70 animate-pulse">
@@ -463,7 +603,7 @@ const App = () => {
               </div>
             </div>
             
-            <div className="no-print">
+            <div className="no-print space-y-4">
                <button onClick={() => window.print()} className={`w-full py-6 rounded-3xl font-bold tracking-widest uppercase text-[10px] flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl ${isNightMode ? "bg-teal-600 hover:bg-teal-500 shadow-teal-900/50 text-white" : "bg-emerald-800 hover:bg-emerald-700 shadow-emerald-900/20 text-white"}`}>
                  <Download size={16} /> Save as PDF
                </button>
@@ -479,8 +619,42 @@ const App = () => {
           <Globe size={32} className="mb-6 opacity-50" />
           <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2">Ramiro Rubén Calahorrano Paccha</p>
           <p className="text-[10px]">Biotech & Environmental Engineering Portfolio • 2026</p>
+          
+          <div className="mt-8 flex flex-col items-center gap-3 text-[10px] font-bold tracking-wider">
+            <button 
+              onClick={() => setShowPrivacyPolicy(true)}
+              className="hover:underline hover:opacity-100 opacity-70 transition-opacity"
+            >
+              PRIVACY POLICY
+            </button>
+            {consentStatus !== 'unknown' && (
+              <button 
+                onClick={resetConsent}
+                className="hover:underline hover:opacity-100 opacity-50 transition-opacity flex items-center gap-2"
+              >
+                <Cookie size={12} /> RESET COOKIE SETTINGS
+              </button>
+            )}
+          </div>
+
         </div>
       </footer>
+
+      {/* GDPR Components Integration */}
+      {showBanner && (
+        <CookieBanner 
+          onAccept={handleAccept} 
+          onDecline={handleDecline} 
+          onOpenPolicy={() => setShowPrivacyPolicy(true)}
+          isNightMode={isNightMode}
+        />
+      )}
+      
+      <PrivacyPolicyModal 
+        isOpen={showPrivacyPolicy} 
+        onClose={() => setShowPrivacyPolicy(false)}
+        isNightMode={isNightMode}
+      />
 
       {/* Global Styles */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -507,4 +681,5 @@ const App = () => {
 };
 
 export default App;
+
 
