@@ -29,7 +29,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           # Keeping your path exactly as you had it
-          server-dir: cv.bioszolventa.com/public_html/ruben/
+          server-dir: bioszolventa.com/public_html/propuesta/
           protocol: ftps
           exclude: |
             **/.git*
